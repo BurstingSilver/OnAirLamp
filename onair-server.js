@@ -1,4 +1,4 @@
-require("/home/pi/OnAir/onair-config.js");
+require("/home/pi/OnAirLamp/onair-config.js");
 
 var pubnub = require("/usr/local/lib/node_modules/pubnub/node.js/pubnub.js")(pubnubConfig);
 
