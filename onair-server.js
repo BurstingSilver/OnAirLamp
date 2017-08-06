@@ -12,7 +12,7 @@ var alertInProgress = false;
 const gpioPin = 11;
 const channelName = "my_channel";
 
-const supportedCommands = {
+var supportedCommands = {
     callStatus : {name: "callStatus", parameters: {oncall: "oncall", phoneNumber: "phoneNumber"}},
     alert : "alert",
     reset : "reset",
