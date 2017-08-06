@@ -149,7 +149,7 @@ function handleCallStatus(message) {
 
     if ((command.oncall && activeCalls == 1)
         || !command.oncall && activeCalls == 0) {
-        writeLog("Turning lamp" + (activeCalls > 0 ? "on" : "off");
+        writeLog("Turning lamp" + (activeCalls > 0 ? "on" : "off"));
         if (activeCalls > 0)
             turnLampOn();
         else
@@ -200,8 +200,8 @@ function publishIpAddress() {
     pubnub.publish({
         channel   : channelName,
         message   : "{\"ipAddress\": \"" + getIpAddress() + "\"}",
-        callback  : function(e) { writeLog(" Info published"); },
-        error     : function(e) { writeLog(" ERROR: Info publish failed: " + e ); }
+        callback  : function(e) { writeLog("Info published"); },
+        error     : function(e) { writeLog("ERROR: Info publish failed: " + e ); }
     });
 }
 
@@ -211,7 +211,7 @@ function handleReset() {
     //reset active call count and call tracking hashtable
     activeCalls = 0;
     callTracking = [];
-    gpio.write(11, activeCalls > 0 ? 1 : 0);
+    turnLampOff();
 }
 
 function getIpAddress() {
@@ -233,10 +233,10 @@ function getIpAddress() {
 
             if (alias >= 1) {
                 // this single interface has multiple ipv4 addresses
-                writeLog(ifname + ':' + alias, ipAddress);
+                writeLog(ifname + ":" + alias + " " + ipAddress);
             } else {
                 // this interface has only one ipv4 adress
-                writeLog(ifname, ipAddress);
+                writeLog(ifname + ":" + ipAddress);
             }
             ++alias;
         });
