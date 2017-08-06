@@ -97,6 +97,7 @@ function onMessageReceived(message) {
 }
 
 function convertLegacyMessage(message) {
+    writeLog("Converting legacy message");
     var newMessage = {
         command : "",
         parameters: []
@@ -116,6 +117,8 @@ function convertLegacyMessage(message) {
     else if (message.info !== undefined) {
         newMessage.command = supportedCommands.info;
     }
+
+    writeLog("New message: " + newMessage);
     return newMessage;
 }
 
