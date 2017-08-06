@@ -1,9 +1,10 @@
-var pubnubConfig = require("onair-config");
+var pubnubConfig = require("./onair-config.js");
 
-var pubnub = require("pubnub")(pubnubConfig);
+var PubNub = require("pubnub");
 var moment = require("moment");
 var gpio = require("pi-gpio");
 
+var pubnub = new PubNub(pubnubConfig);
 var callTracking = [];
 var activeCalls = 0;
 var alertInProgress = false;
