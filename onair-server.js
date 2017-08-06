@@ -97,24 +97,28 @@ function onMessageReceived(message) {
 }
 
 function convertLegacyMessage(message) {
-    writeLog("Converting legacy message");
+    writeLog("Converting legacy message: " + JSON.stringify(message));
     var newMessage = {
         command : "",
         parameters: []
     };
 
     if (message.oncall !== undefined && message.phoneNumber !== undefined) {
+        writeLog("Converting oncall message");
         newMessage.command = supportedCommands.callStatus;
         newMessage.parameters[supportedCommands.callStatus.parameters.oncall] = message.oncall;
         newMessage.parameters[supportedCommands.callStatus.parameters.phoneNumber] = message.phoneNumber;
     }
     else if (message.alert !== undefined) {
+        writeLog("Converting alert message");
         newMessage.command = supportedCommands.alert;
     }
     else if (message.reset !== undefined) {
+        writeLog("Converting reset message");
         newMessage.command = supportedCommands.reset;
     }
     else if (message.info !== undefined) {
+        writeLog("Converting info message");
         newMessage.command = supportedCommands.info;
     }
 
