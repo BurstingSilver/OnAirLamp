@@ -21,16 +21,31 @@ const supportedCommands = {
 
 function init() {
     initializeGPIO();
-    writeLog("Subscribing to PubNub Channel.");
-    pubnub.subscribe({
-        channel: channelName,
-        callback: onMessageReceived
-    });
+    subscribeToChannel();
 }
 
 function initializeGPIO() {
     writeLog("Initializing GPIO.");
     gpio.setup(gpioPin, gpio.DIR_OUT, togglePin);
+}
+
+function subscribeToChannel() {
+    writeLog("Adding PubNub listener.");
+    pubnub.addListener({
+        status: function(statusEvent) {
+            if (statusEvent.category === "PNConnectedCategory") {
+                publishSampleMessage();
+            }
+        },
+        message: onMessageReceived(message),
+        presence: function(presenceEvent) {
+            // handle presence
+        }
+    });
+    writeLog("Subscribing to PubNub channel.");
+    pubnub.subscribe({
+        channels: [channelName] 
+    });
 }
  
 function togglePin(pinOn) {
