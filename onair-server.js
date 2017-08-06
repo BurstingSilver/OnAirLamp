@@ -2,13 +2,14 @@ var pubnubConfig = require("./onair-config.js");
 
 var PubNub = require("pubnub");
 var moment = require("moment");
-var gpio = require("pi-gpio");
+var gpio = require("rpi-gpio");
 
 var pubnub = new PubNub(pubnubConfig);
 var callTracking = [];
 var activeCalls = 0;
 var alertInProgress = false;
 
+const gpioPin = 11;
 const channelName = "my_channel";
 
 const supportedCommands = {
@@ -27,16 +28,21 @@ function init() {
 }
 
 function initializeGPIO() {
-    gpio.close(11);
-    gpio.open(11, "output");
+    gpio.setup(gpioPin, gpio.DIR_OUT, togglePin);
+}
+ 
+function togglePin(pinOn) {
+    gpio.write(gpioPin, pinOn, function(err) {
+        if (err) throw err;
+    });
 }
 
 function turnLampOn() {
-    gpio.write(11, 1);
+    togglePin(true);
 }
 
 function turnLampOff() {
-    gpio.write(11, 0);
+    togglePin(false);
 }
 
 function writeLog(message) {
