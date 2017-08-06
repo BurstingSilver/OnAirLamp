@@ -72,8 +72,8 @@ function writeLog(message) {
 function onMessageReceived(message) {
     writeLog("DATA: " + JSON.stringify(message));
 
-    if (typeof message === "string" || message instanceof String)
-        message = JSON.parse(message);
+    if (typeof message.message === "string" || message.message instanceof String)
+        message = JSON.parse(message.message);
 
     if (message.command === undefined) message = convertLegacyMessage(message);
 
