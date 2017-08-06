@@ -9,7 +9,6 @@
     "email": "dberry@burstingsilver.com"
   },
   "dependencies": {
-    //"express": "^4.13.3"
     "pi-gpio": "^0.0.8",
     "moment": "^2.18.1",
     "pubnub": "^4.13.0"
