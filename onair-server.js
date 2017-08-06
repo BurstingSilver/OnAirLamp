@@ -139,17 +139,17 @@ function handleCallStatus(message) {
     for (var phoneNumber in callTracking) {
         if (callTracking.hasOwnProperty(phoneNumber)) {
             if (callTracking[phoneNumber]) {
-                writeLog("Active Call:", phoneNumber);
+                writeLog("Active Call: " + phoneNumber);
                 activeCalls++;
             }
         }
     }
 
-    writeLog("Active Call Count:", activeCalls);
+    writeLog("Active Call Count: " + activeCalls);
 
     if ((command.oncall && activeCalls == 1)
         || !command.oncall && activeCalls == 0) {
-        writeLog("Turning lamp", activeCalls > 0 ? "on" : "off");
+        writeLog("Turning lamp" + (activeCalls > 0 ? "on" : "off");
         if (activeCalls > 0)
             turnLampOn();
         else
@@ -174,12 +174,12 @@ function handleAlert() {
         else
             turnLampOff();
 
-        writeLog("Flashing lamp " + timesRun % 2 > 0 ? "on" : "off");
+        writeLog("Flashing lamp " + (timesRun % 2 > 0 ? "on" : "off"));
 
         if (timesRun === 10) {
             clearInterval(interval);
             //restore light state
-            writeLog("Turning lamp " + activeCalls > 0 ? "on" : "off");
+            writeLog("Turning lamp " + (activeCalls > 0 ? "on" : "off"));
             if (activeCalls > 0)
                 turnLampOn();
             else
@@ -201,7 +201,7 @@ function publishIpAddress() {
         channel   : channelName,
         message   : "{\"ipAddress\": \"" + getIpAddress() + "\"}",
         callback  : function(e) { writeLog(" Info published"); },
-        error     : function(e) { writeLog(" ERROR: Info publish failed", e ); }
+        error     : function(e) { writeLog(" ERROR: Info publish failed: " + e ); }
     });
 }
 
