@@ -34,7 +34,7 @@ function subscribeToChannel() {
     pubnub.addListener({
         status: function(statusEvent) {
             if (statusEvent.category === "PNConnectedCategory") {
-                publishSampleMessage();
+                publishIpAddress();
             }
         },
         message: function(message) {
@@ -66,7 +66,7 @@ function turnLampOff() {
 }
 
 function writeLog(message) {
-    console.log(" > ", moment().format(), message);
+    console.log(" > ", moment().format(), " ", message);
 }
 
 function onMessageReceived(message) {
@@ -120,7 +120,7 @@ function convertLegacyMessage(message) {
 }
 
 function handleCallStatus(message) {
-    writeLog(" Call status command recieved");
+    writeLog("Call status command recieved");
 
     var oncall = message.parameters[supportedCommands.callStatus.parameters.oncall];
     var phoneNumber = message.parameters[supportedCommands.callStatus.parameters.phoneNumber];
@@ -151,10 +151,10 @@ function handleCallStatus(message) {
 }
 
 function handleAlert() {
-    writeLog(" Alert command recieved");
+    writeLog("Alert command recieved");
 
     if (alertInProgress) {
-        writeLog(" There is already an Alert in progress!");
+        writeLog("There is already an Alert in progress!");
         return;
     }
 
@@ -184,9 +184,12 @@ function handleAlert() {
 }
 
 function handleInfo() {
-    writeLog(" Info command recieved");
+    writeLog("Info command recieved");
+    publishIpAddress();
+}
 
-    //publish info (IP) to channel
+function publishIpAddress() {
+    writeLog("Publish IP Address.");
     pubnub.publish({
         channel   : channelName,
         message   : "{\"ipAddress\": \"" + getIpAddress() + "\"}",
@@ -196,7 +199,7 @@ function handleInfo() {
 }
 
 function handleReset() {
-    writeLog(" Reset command recieved");
+    writeLog("Reset command recieved");
 
     //reset active call count and call tracking hashtable
     activeCalls = 0;
