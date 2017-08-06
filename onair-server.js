@@ -37,13 +37,14 @@ function subscribeToChannel() {
                 publishSampleMessage();
             }
         },
-        message:  function(message) {
+        message: function(message) {
             onMessageReceived(message);
         },
         presence: function(presenceEvent) {
             // handle presence
         }
     });
+
     writeLog("Subscribing to PubNub channel.");
     pubnub.subscribe({
         channels: [channelName] 
