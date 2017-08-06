@@ -1,0 +1,22 @@
+{
+  "name": "OnAirLamp",
+  "private": true,
+  "version": "0.0.0",
+  "description": "On Air Lamp",
+  "main": "onair-server.js",
+  "author": {
+    "name": "Dylan Berry",
+    "email": "dberry@burstingsilver.com"
+  },
+  "dependencies": {
+    //"express": "^4.13.3"
+    "pi-gpio": "^0.0.8",
+    "moment": "^2.18.1",
+    "pubnub": "^4.13.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-zip": "^3.0.2",
+    "minimist": "^1.2.0"
+  }
+}
