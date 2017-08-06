@@ -1,94 +1,181 @@
-var pubnubConfig = require("/home/pi/OnAirLamp/onair-config.js");
+var pubnubConfig = require("onair-config");
 
-var pubnub = require("/usr/local/lib/node_modules/pubnub/node.js/pubnub.js")(pubnubConfig);
+var pubnub = require("pubnub")(pubnubConfig);
+var moment = require("moment");
+var gpio = require("pi-gpio");
 
 var callTracking = [];
 var activeCalls = 0;
-var gpio = require("/usr/local/lib/node_modules/pi-gpio/pi-gpio.js");
-
 var alertInProgress = false;
 
-gpio.close(11);
-gpio.open(11, "output");
+const channelName = "my_channel";
 
-/* ---------------------------------------------------------------------------
- Listen for Messages
- --------------------------------------------------------------------------- */
-pubnub.subscribe({
-    channel: "my_channel",
-    callback: function (message) {
+const supportedCommands = {
+    callStatus : {name: "callStatus", parameters: {oncall: "oncall", phoneNumber: "phoneNumber"}},
+    alert : "alert",
+    reset : "reset",
+    info : "info",
+};
 
-        var moment = require("/usr/local/lib/node_modules/moment/moment.js");
+function init() {
+    initializeGPIO();
+    pubnub.subscribe({
+        channel: channelName,
+        callback: onMessageReceived
+    });
+}
 
-        console.log(" > ", moment().format(), "DATA:", JSON.stringify(message));
+function initializeGPIO() {
+    gpio.close(11);
+    gpio.open(11, "output");
+}
 
-        var commandMessage = {};
-        if (typeof message === 'string' || message instanceof String)
-            commandMessage = JSON.parse(message);
-        else
-            commandMessage = message;
+function turnLampOn() {
+    gpio.write(11, 1);
+}
 
-        if (commandMessage.oncall !== undefined && commandMessage.phoneNumber !== undefined) {
+function turnLampOff() {
+    gpio.write(11, 0);
+}
 
-            activeCalls = 0;
+function writeLog(message) {
+    console.log(" > ", moment().format(), message);
+}
 
-            callTracking[commandMessage.phoneNumber] = commandMessage.oncall;
+function onMessageReceived(message) {
+    writeLog("DATA: " + JSON.stringify(message));
 
-            for (var phoneNumber in callTracking) {
-                if (callTracking.hasOwnProperty(phoneNumber)) {
-                    if (callTracking[phoneNumber]) {
-                        console.log(" > ", moment().format(), "Active Call:", phoneNumber);
-                        activeCalls++;
-                    }
-                }
+    if (typeof message === "string" || message instanceof String)
+        message = JSON.parse(message);
+
+    if (message.command === undefined) message = convertLegacyMessage(message);
+
+    switch (message.command) {
+        case supportedCommands.callStatus.name:
+            handleCallStatus(message);
+            break;
+        case supportedCommands.alert:
+            handleAlert();
+            break;
+        case supportedCommands.reset:
+            handleReset();
+            break;
+        case supportedCommands.info:
+            handleInfo();
+            break;
+        default:
+            writeLog("ERROR: Unsupported \"" + message.command + "\" command recieved");
+            break;
+    }
+}
+
+function convertLegacyMessage(message) {
+    var newMessage = {
+        command : "",
+        parameters: []
+    };
+
+    if (message.oncall !== undefined && message.phoneNumber !== undefined) {
+        newMessage.command = supportedCommands.callStatus;
+        newMessage.parameters[supportedCommands.callStatus.parameters.oncall] = message.oncall;
+        newMessage.parameters[supportedCommands.callStatus.parameters.phoneNumber] = message.phoneNumber;
+    }
+    else if (message.alert !== undefined) {
+        newMessage.command = supportedCommands.alert;
+    }
+    else if (message.reset !== undefined) {
+        newMessage.command = supportedCommands.reset;
+    }
+    else if (message.info !== undefined) {
+        newMessage.command = supportedCommands.info;
+    }
+    return newMessage;
+}
+
+function handleCallStatus(message) {
+    writeLog(" Call status command recieved");
+
+    var oncall = message.parameters[supportedCommands.callStatus.parameters.oncall];
+    var phoneNumber = message.parameters[supportedCommands.callStatus.parameters.phoneNumber];
+
+    activeCalls = 0;
+
+    callTracking[phoneNumber] = oncall;
+
+    for (var phoneNumber in callTracking) {
+        if (callTracking.hasOwnProperty(phoneNumber)) {
+            if (callTracking[phoneNumber]) {
+                writeLog("Active Call:", phoneNumber);
+                activeCalls++;
             }
-
-            console.log(" > ", moment().format(), "Active Call Count:", activeCalls);
-
-            if ((commandMessage.oncall && activeCalls == 1)
-                || !commandMessage.oncall && activeCalls == 0) {
-                console.log(" > ", moment().format(), "Turning lamp", activeCalls > 0 ? "on" : "off");
-                gpio.write(11, activeCalls > 0 ? 1 : 0);
-            }
-        }
-        else if (commandMessage.alert !== undefined && !alertInProgress) {
-
-            console.log(" > ", moment().format(), " Alert recieved");
-            alertInProgress = true;
-
-            var timesRun = 0;
-            var interval = setInterval(function () {
-                gpio.write(11, timesRun % 2);
-                console.log(" > ", moment().format(), "Flashing lamp", timesRun % 2 > 0 ? "on" : "off");
-
-                if (timesRun === 10) {
-                    clearInterval(interval);
-                    //restore light state
-                    console.log(" > ", moment().format(), "Turning lamp", activeCalls > 0 ? "on" : "off");
-                    gpio.write(11, activeCalls > 0 ? 1 : 0);
-                    alertInProgress = false;
-                }
-                timesRun += 1;
-            }, 500);
-        }
-        else if (commandMessage.reset !== undefined) {
-            activeCalls = 0;
-            callTracking = [];
-            gpio.write(11, activeCalls > 0 ? 1 : 0);
-        }
-        else if (commandMessage.info !== undefined) {
-            //publish info (IP) to channel
-            console.log(" > ", moment().format(), " Info request recieved");
-
-            pubnub.publish({
-                channel   : 'my_channel',
-                message   : "{\"ipAddress\": \"" + getIpAddress() + "\"}",
-                callback  : function(e) { console.log(" > ", moment().format(), " Info published"); },
-                error     : function(e) { console.log(" > ", moment().format(), " ERROR: Info publish failed", e ); }
-            });
         }
     }
-});
+
+    writeLog("Active Call Count:", activeCalls);
+
+    if ((command.oncall && activeCalls == 1)
+        || !command.oncall && activeCalls == 0) {
+        writeLog("Turning lamp", activeCalls > 0 ? "on" : "off");
+        if (activeCalls > 0)
+            turnLampOn();
+        else
+            turnLampOff();
+    }
+}
+
+function handleAlert() {
+    writeLog(" Alert command recieved");
+
+    if (alertInProgress) {
+        writeLog(" There is already an Alert in progress!");
+        return;
+    }
+
+    alertInProgress = true;
+
+    var timesRun = 0;
+    var interval = setInterval(function () {
+        if (timesRun % 2 > 0 )
+            turnLampOn();
+        else
+            turnLampOff();
+
+        writeLog("Flashing lamp", timesRun % 2 > 0 ? "on" : "off");
+
+        if (timesRun === 10) {
+            clearInterval(interval);
+            //restore light state
+            writeLog("Turning lamp", activeCalls > 0 ? "on" : "off");
+            if (activeCalls > 0)
+                turnLampOn();
+            else
+                turnLampOff();
+            alertInProgress = false;
+        }
+        timesRun += 1;
+    }, 500);
+}
+
+function handleInfo() {
+    writeLog(" Info command recieved");
+
+    //publish info (IP) to channel
+    pubnub.publish({
+        channel   : channelName,
+        message   : "{\"ipAddress\": \"" + getIpAddress() + "\"}",
+        callback  : function(e) { writeLog(" Info published"); },
+        error     : function(e) { writeLog(" ERROR: Info publish failed", e ); }
+    });
+}
+
+function handleReset() {
+    writeLog(" Reset command recieved");
+
+    //reset active call count and call tracking hashtable
+    activeCalls = 0;
+    callTracking = [];
+    gpio.write(11, activeCalls > 0 ? 1 : 0);
+}
 
 function getIpAddress() {
 
@@ -109,10 +196,10 @@ function getIpAddress() {
 
             if (alias >= 1) {
                 // this single interface has multiple ipv4 addresses
-                console.log(" > ", moment().format(), ifname + ':' + alias, ipAddress);
+                writeLog(ifname + ':' + alias, ipAddress);
             } else {
                 // this interface has only one ipv4 adress
-                console.log(" > ", moment().format(), ifname, ipAddress);
+                writeLog(ifname, ipAddress);
             }
             ++alias;
         });
@@ -120,3 +207,5 @@ function getIpAddress() {
 
     return ipAddress;
 }
+
+init();
