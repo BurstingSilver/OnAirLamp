@@ -118,7 +118,7 @@ function convertLegacyMessage(message) {
         newMessage.command = supportedCommands.info;
     }
 
-    writeLog("New message: " + newMessage);
+    writeLog("New message: " + JSON.stringify(newMessage));
     return newMessage;
 }
 
