@@ -37,7 +37,9 @@ function subscribeToChannel() {
                 publishSampleMessage();
             }
         },
-        message: onMessageReceived(message),
+        message:  function(message) {
+            onMessageReceived(message);
+        },
         presence: function(presenceEvent) {
             // handle presence
         }
