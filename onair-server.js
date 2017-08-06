@@ -174,12 +174,12 @@ function handleAlert() {
         else
             turnLampOff();
 
-        writeLog("Flashing lamp", timesRun % 2 > 0 ? "on" : "off");
+        writeLog("Flashing lamp " + timesRun % 2 > 0 ? "on" : "off");
 
         if (timesRun === 10) {
             clearInterval(interval);
             //restore light state
-            writeLog("Turning lamp", activeCalls > 0 ? "on" : "off");
+            writeLog("Turning lamp " + activeCalls > 0 ? "on" : "off");
             if (activeCalls > 0)
                 turnLampOn();
             else
