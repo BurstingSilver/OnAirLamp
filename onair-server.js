@@ -21,6 +21,7 @@ const supportedCommands = {
 
 function init() {
     initializeGPIO();
+    writeLog("Subscribing to PubNub Channel.");
     pubnub.subscribe({
         channel: channelName,
         callback: onMessageReceived
@@ -28,6 +29,7 @@ function init() {
 }
 
 function initializeGPIO() {
+    writeLog("Initializing GPIO.");
     gpio.setup(gpioPin, gpio.DIR_OUT, togglePin);
 }
  
