@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var pubnubConfig = require("./onair-config.js");
 
 var PubNub = require("pubnub");
