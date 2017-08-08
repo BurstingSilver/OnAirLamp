@@ -79,6 +79,9 @@ function onMessageReceived(message) {
 
     if (message.command === undefined) message = convertLegacyMessage(message);
 
+    // exit if there is no command specified
+    if (message.command == "") return;
+
     switch (message.command) {
         case supportedCommands.callStatus.name:
             handleCallStatus(message);
