@@ -6,7 +6,7 @@ var PubNub = require("pubnub");
 var moment = require("moment");
 var gpio = require("rpi-gpio");
 
-var pubnub = new PubNub(pubnubConfig);
+var pubnub = {};
 var callTracking = [];
 var activeCalls = 0;
 var alertInProgress = false;
@@ -23,6 +23,10 @@ var supportedCommands = {
 
 function init() {
     initializeGPIO();
+    initializePubNub();
+}
+
+function monitorCalls() {
     subscribeToChannel();
 }
 
@@ -31,19 +35,35 @@ function initializeGPIO() {
     gpio.setup(gpioPin, gpio.DIR_OUT, togglePin);
 }
 
+function initializePubNub() {
+    writeLog("Initializing PubNub.");
+    
+    if (!pubnubConfig.subscribe_key ||
+        pubnubConfig.subscribe_key.length != 42 ||
+        pubnubConfig.subscribe_key.startsWith("PUBNUB_")) throw new Error("Invalid PubNub Subscribe key!");
+
+    if (!pubnubConfig.publish_key || 
+        pubnubConfig.publish_key.length != 42 ||  
+        pubnubConfig.publish_key.startsWith("PUBNUB_")) throw new Error("Invalid PubNub Publish key!");
+
+    pubnub = new PubNub(pubnubConfig);
+}
+
 function subscribeToChannel() {
     writeLog("Adding PubNub listener.");
     pubnub.addListener({
         status: function(statusEvent) {
+            writeLog("STATUS: " + JSON.stringify(statusEvent));
             if (statusEvent.category === "PNConnectedCategory") {
                 publishIpAddress();
             }
         },
         message: function(message) {
+            writeLog("MESSAGE: " + JSON.stringify(message));
             onMessageReceived(message);
         },
         presence: function(presenceEvent) {
-            // handle presence
+            writeLog("PRESENCE: " + JSON.stringify(presence));
         }
     });
 
@@ -72,7 +92,7 @@ function writeLog(message) {
 }
 
 function onMessageReceived(message) {
-    writeLog("DATA: " + JSON.stringify(message));
+    writeLog("Message recieved");
 
     if (typeof message.message === "string" || message.message instanceof String)
         message = JSON.parse(message.message);
@@ -251,3 +271,4 @@ function getIpAddress() {
 }
 
 init();
+monitorCalls();
